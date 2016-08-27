@@ -9,29 +9,29 @@ set(fmjpeg2k_VERSION "${fmjpeg2k_VERSION_MAJOR}.${fmjpeg2k_VERSION_MINOR}.${fmjp
 
 option(BUILD_SHARED_LIBS "Build fmjpeg2k shared library and link executables against it." ON)
 
-find_package(dcmtk REQUIRED CONFIG HINTS ${DCMTK_DIR})
-find_package(openjpeg REQUIRED CONFIG HINTS ${OPENJPEG})
+find_package(DCMTK REQUIRED CONFIG HINTS ${DCMTK_DIR})
+find_package(OpenJPEG REQUIRED CONFIG HINTS ${OPENJPEG})
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${DCMTK_INCLUDE_DIRS} ${OPENJPEG_INCLUDE_DIRS})
-
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${DCMTK_INCLUDE_DIRS} ${OPENJPEG_INCLUDE_DIRS})
+LINK_DIRECTORIES(${FMJPEG2K}/lib)
 add_definitions(-DOPJ_STATIC)
 add_definitions(-Dfmjpeg2k_EXPORTS)
 
 set(fmjpeg2k_HEADERS
-	djcodecd.h
-    djcodece.h
-	djcparam.h
-	djdecode.h
-	djencode.h
-	djerror.h
-	djlsutil.h
-	djrparam.h
-	dldefine.h
-	memory_file.h
+	include/fmjpeg2k/djcodecd.h
+	include/fmjpeg2k/djcodece.h
+	include/fmjpeg2k/djcparam.h
+	include/fmjpeg2k/djdecode.h
+	include/fmjpeg2k/djencode.h
+	include/fmjpeg2k/djerror.h
+	include/fmjpeg2k/djlsutil.h
+	include/fmjpeg2k/djrparam.h
+	include/fmjpeg2k/dldefine.h
+	include/fmjpeg2k/memory_file.h
 )
 
 set(fmjpeg2k_SRCS
-    ${fmjpeg2k_HEADERS}    
+    ${fmjpeg2k_HEADERS}
 	djcodecd.cc
 	djcodece.cc
 	djcparam.cc
@@ -52,6 +52,14 @@ TARGET_LINK_LIBRARIES(dcmcjp2k
 	openjp2
 	fmjpeg2k
 	)
+	
+ADD_EXECUTABLE(dcmdjp2k dcmdjp2k.cc)
+TARGET_LINK_LIBRARIES(dcmdjp2k 			
+	${DCMTK_LIBRARIES}		
+	openjp2
+	fmjpeg2k
+	)
+
 
 add_library(fmjpeg2k ${fmjpeg2k_SRCS})
 set(fmjpeg2k_LIBRARY_NAME fmjpeg2k)
@@ -70,10 +78,17 @@ set_property(TARGET fmjpeg2k APPEND PROPERTY
   COMPATIBLE_INTERFACE_STRING fmjpeg2k_MAJOR_VERSION
 )
 
+install(TARGETS dcmdjp2k EXPORT fmjpeg2kTargets
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS dcmcjp2k EXPORT fmjpeg2kTargets
+  RUNTIME DESTINATION bin
+)
+
 install(TARGETS fmjpeg2k EXPORT fmjpeg2kTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
 
@@ -93,8 +108,8 @@ write_basic_package_version_file(
   COMPATIBILITY AnyNewerVersion
 )
 
-export(EXPORT fmjpeg2kTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/fmjpeg2k/fmjpeg2kTargets.cmake"  
+export(TARGETS fmjpeg2k
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/fmjpeg2kExports.cmake" 
 )
 configure_file( ${CMAKE_SOURCE_DIR}/cmake/fmjpeg2kConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/fmjpeg2kConfig.cmake

@@ -35,8 +35,8 @@
 #include "dcmtk/ofstd/ofconapp.h"
 #include "dcmtk/dcmdata/dcuid.h"      /* for dcmtk version name */
 #include "dcmtk/dcmimage/diregist.h"  /* include to support color images */
-#include "djencode.h"   /* for class DJLSEncoderRegistration */
-#include "djrparam.h"   /* for class FMJP2KRepresentationParameter */
+#include "fmjpeg2k/djencode.h"   /* for class DJLSEncoderRegistration */
+#include "fmjpeg2k/djrparam.h"   /* for class FMJP2KRepresentationParameter */
 
 #ifdef USE_LICENSE_FILE
 #include "oflice.h"
@@ -191,7 +191,7 @@ LICENSE_FILE_DECLARE_COMMAND_LINE_OPTIONS
         {
           app.printHeader(OFTrue /*print host identifier*/);
           COUT << OFendl << "External libraries used:" << OFendl;
-          COUT << "- " << FMJP2KEncoderRegistration::getLibraryVersionString() << OFendl;
+          COUT << "- " << FMJPEG2KEncoderRegistration::getLibraryVersionString() << OFendl;
           return 0;
         }
       }
@@ -354,7 +354,7 @@ LICENSE_FILE_EVALUATE_COMMAND_LINE_OPTIONS
     OFLOG_DEBUG(fmjp2kLogger, rcsid << OFendl);
 
     // register global compression codecs
-    FMJP2KEncoderRegistration::registerCodecs(opt_use_custom_options,
+    FMJPEG2KEncoderRegistration::registerCodecs(opt_use_custom_options,
       OFstatic_cast(Uint16, opt_cblkwidth), OFstatic_cast(Uint16, opt_cblkheight),
       opt_prefer_cooked, opt_fragmentSize, opt_createOffsetTable,
       opt_uidcreation, opt_secondarycapture);
@@ -410,7 +410,7 @@ LICENSE_FILE_EVALUATE_COMMAND_LINE_OPTIONS
     OFLOG_INFO(fmjp2kLogger, "Convert DICOM file to compressed transfer syntax");
 
     //create representation parameter
-    FMJP2KRepresentationParameter rp(OFstatic_cast(Uint16, opt_nearlossless_psnr), opt_useLosslessProcess);
+    FMJPEG2KRepresentationParameter rp(OFstatic_cast(Uint16, opt_nearlossless_psnr), opt_useLosslessProcess);
     DcmXfer opt_oxferSyn(opt_oxfer);
 
     // perform decoding process
@@ -443,7 +443,7 @@ LICENSE_FILE_EVALUATE_COMMAND_LINE_OPTIONS
     OFLOG_INFO(fmjp2kLogger, "conversion successful");
 
     // deregister global codecs
-    FMJP2KEncoderRegistration::cleanup();
+    FMJPEG2KEncoderRegistration::cleanup();
 
     return 0;
 }

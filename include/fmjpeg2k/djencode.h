@@ -11,7 +11,7 @@
  *
  *  Author:  Ing-Long Eric Kuo
  *
- *  Purpose: singleton class that registers encoders for all supported JPEG-LS processes.
+ *  Purpose: singleton class that registers encoders for all supported JPEG 2000 processes.
  *
  */
 
@@ -24,20 +24,20 @@
 #include "dcmtk/dcmdata/dctypes.h"  /* for Uint32 */
 #include "djcparam.h" /* for class DJP2KCodecParameter */
 
-class DJP2KCodecParameter;
-class DJP2KLosslessEncoder;
-class DJP2KNearLosslessEncoder;
+class DJPEG2KCodecParameter;
+class DJPEG2KLosslessEncoder;
+class DJPEG2KNearLosslessEncoder;
 
-/** singleton class that registers encoders for all supported JPEG-LS processes.
+/** singleton class that registers encoders for all supported JPEG 2000 processes.
  */
-class FMJPEG2K_EXPORT FMJP2KEncoderRegistration
+class FMJPEG2K_EXPORT FMJPEG2KEncoderRegistration
 {
 public:
 
-  /** registers encoders for all supported JPEG-LS processes. 
+  /** registers encoders for all supported JPEG 2000 processes. 
    *  If already registered, call is ignored unless cleanup() has
    *  been performed before.
-   *  @param jp2k_optionsEnabled       enable/disable use of all five JPEG-LS parameters
+   *  @param jp2k_optionsEnabled       enable/disable use of all five JPEG 2000 parameters
    *  @param jp2k_cblkwidth            JPEG-2000 parameter "Threshold 1" (used for quantization)
    *  @param jp2k_cblkheight           JPEG-2000 parameter "Threshold 2"
    *  @param preferCookedEncoding      true if the "cooked" lossless encoder should be preferred over the "raw" one
@@ -76,13 +76,13 @@ private:
   static OFBool registered_;
 
   /// pointer to codec parameter shared by all encoders
-  static DJP2KCodecParameter *cp_;
+  static DJPEG2KCodecParameter *cp_;
 
-  /// pointer to encoder for lossless JPEG-LS
-  static DJP2KLosslessEncoder  *losslessencoder_;
+  /// pointer to encoder for lossless JPEG 2000
+  static DJPEG2KLosslessEncoder  *losslessencoder_;
 
-  /// pointer to encoder for lossy JPEG-LS
-  static DJP2KNearLosslessEncoder *nearlosslessencoder_;
+  /// pointer to encoder for lossy JPEG 2000
+  static DJPEG2KNearLosslessEncoder *nearlosslessencoder_;
 
 };
 

@@ -16,7 +16,7 @@
  */
 
 #include "dcmtk/config/osconfig.h"
-#include "djcodecd.h"
+#include "fmjpeg2k/djcodecd.h"
 
 #include "dcmtk/ofstd/ofstream.h"    /* for ofstream */
 #include "dcmtk/ofstd/ofcast.h"      /* for casts */
@@ -29,30 +29,30 @@
 #include "dcmtk/dcmdata/dcvrpobw.h"  /* for class DcmPolymorphOBOW */
 #include "dcmtk/dcmdata/dcswap.h"    /* for swapIfNecessary() */
 #include "dcmtk/dcmdata/dcuid.h"     /* for dcmGenerateUniqueIdentifer()*/
-#include "djcparam.h"  /* for class DJP2KCodecParameter */
-#include "djerror.h"                 /* for private class DJLSError */
+#include "fmjpeg2k/djcparam.h"  /* for class DJP2KCodecParameter */
+#include "fmjpeg2k/djerror.h"                 /* for private class DJLSError */
 
 // JPEG-2000 library (OpenJPEG) includes
 #include "openjpeg.h"
 
-#include "memory_file.h"
+#include "fmjpeg2k/memory_file.h"
 
 
 
 
 
-DJP2KDecoderBase::DJP2KDecoderBase()
+DJPEG2KDecoderBase::DJPEG2KDecoderBase()
 : DcmCodec()
 {
 }
 
 
-DJP2KDecoderBase::~DJP2KDecoderBase()
+DJPEG2KDecoderBase::~DJPEG2KDecoderBase()
 {
 }
 
 
-OFBool DJP2KDecoderBase::canChangeCoding(
+OFBool DJPEG2KDecoderBase::canChangeCoding(
     const E_TransferSyntax oldRepType,
     const E_TransferSyntax newRepType) const
 {
@@ -68,7 +68,7 @@ OFBool DJP2KDecoderBase::canChangeCoding(
 }
 
 
-OFCondition DJP2KDecoderBase::decode(
+OFCondition DJPEG2KDecoderBase::decode(
     const DcmRepresentationParameter * /* fromRepParam */,
     DcmPixelSequence * pixSeq,
     DcmPolymorphOBOW& uncompressedPixelData,
@@ -131,7 +131,7 @@ OFCondition DJP2KDecoderBase::decode(
   if (totalSize & 1) totalSize++; // align on 16-bit word boundary
 
   // assume we can cast the codec parameter to what we need
-  const DJP2KCodecParameter *djcp = OFreinterpret_cast(const DJP2KCodecParameter *, cp);
+  const DJPEG2KCodecParameter *djcp = OFreinterpret_cast(const DJPEG2KCodecParameter *, cp);
 
   // determine planar configuration for uncompressed data
   OFString imageSopClass;
@@ -189,7 +189,7 @@ OFCondition DJP2KDecoderBase::decode(
 }
 
 
-OFCondition DJP2KDecoderBase::decodeFrame(
+OFCondition DJPEG2KDecoderBase::decodeFrame(
     const DcmRepresentationParameter * /* fromParam */,
     DcmPixelSequence *fromPixSeq,
     const DcmCodecParameter *cp,
@@ -203,7 +203,7 @@ OFCondition DJP2KDecoderBase::decodeFrame(
   OFCondition result = EC_Normal;
 
   // assume we can cast the codec parameter to what we need
-  const DJP2KCodecParameter *djcp = OFreinterpret_cast(const DJP2KCodecParameter *, cp);
+  const DJPEG2KCodecParameter *djcp = OFreinterpret_cast(const DJPEG2KCodecParameter *, cp);
 
   // determine properties of uncompressed dataset
   Uint16 imageSamplesPerPixel = 0;
@@ -290,9 +290,9 @@ OFCondition copyRGBUint8ToRGBUint8Planar(
   Uint16 columns,
   Uint16 rows);
 
-OFCondition DJP2KDecoderBase::decodeFrame(
+OFCondition DJPEG2KDecoderBase::decodeFrame(
     DcmPixelSequence * fromPixSeq,
-    const DJP2KCodecParameter *cp,
+    const DJPEG2KCodecParameter *cp,
     DcmItem *dataset,
     Uint32 frameNo,
     Uint32& currentItem,
@@ -405,7 +405,21 @@ OFCondition DJP2KDecoderBase::decodeFrame(
 	
 	l_stream = opj_stream_create_memory_stream(&mysrc, OPJ_J2K_STREAM_CHUNK_SIZE, true);
 
-	l_codec = opj_create_decompress(OPJ_CODEC_J2K);
+	// figure out codec
+	#define JP2_RFC3745_MAGIC "\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a"
+	#define JP2_MAGIC "\x0d\x0a\x87\x0a"
+	/* position 45: "\xff\x52" */
+	#define J2K_CODESTREAM_MAGIC "\xff\x4f\xff\x51"
+
+	OPJ_CODEC_FORMAT format = OPJ_CODEC_UNKNOWN; 
+	if(memcmp(jlsData, JP2_RFC3745_MAGIC, 12) == 0 || memcmp(jlsData, JP2_MAGIC, 4) == 0)
+		format = OPJ_CODEC_JP2;	
+	else if (memcmp(jlsData, J2K_CODESTREAM_MAGIC, 4) == 0)
+		format = OPJ_CODEC_J2K;
+	else
+		format = OPJ_CODEC_J2K;
+
+	l_codec = opj_create_decompress(format);
 
 	opj_set_info_handler(l_codec, msg_callback, NULL);
 	opj_set_warning_handler(l_codec, msg_callback, NULL);
@@ -494,7 +508,7 @@ OFCondition DJP2KDecoderBase::decodeFrame(
 }
 
 
-OFCondition DJP2KDecoderBase::encode(
+OFCondition DJPEG2KDecoderBase::encode(
     const Uint16 * /* pixelData */,
     const Uint32 /* length */,
     const DcmRepresentationParameter * /* toRepParam */,
@@ -507,7 +521,7 @@ OFCondition DJP2KDecoderBase::encode(
 }
 
 
-OFCondition DJP2KDecoderBase::encode(
+OFCondition DJPEG2KDecoderBase::encode(
     const E_TransferSyntax /* fromRepType */,
     const DcmRepresentationParameter * /* fromRepParam */,
     DcmPixelSequence * /* fromPixSeq */,
@@ -521,7 +535,7 @@ OFCondition DJP2KDecoderBase::encode(
 }
 
 
-OFCondition DJP2KDecoderBase::determineDecompressedColorModel(
+OFCondition DJPEG2KDecoderBase::determineDecompressedColorModel(
     const DcmRepresentationParameter * /* fromParam */,
     DcmPixelSequence * /* fromPixSeq */,
     const DcmCodecParameter * /* cp */,
@@ -538,7 +552,7 @@ OFCondition DJP2KDecoderBase::determineDecompressedColorModel(
 }
 
 
-Uint16 DJP2KDecoderBase::determinePlanarConfiguration(
+Uint16 DJPEG2KDecoderBase::determinePlanarConfiguration(
   const OFString& sopClassUID,
   const OFString& photometricInterpretation)
 {
@@ -556,7 +570,7 @@ Uint16 DJP2KDecoderBase::determinePlanarConfiguration(
   return 0;
 }
 
-Uint32 DJP2KDecoderBase::computeNumberOfFragments(
+Uint32 DJPEG2KDecoderBase::computeNumberOfFragments(
   Sint32 numberOfFrames,
   Uint32 currentFrame,
   Uint32 startItem,
@@ -661,7 +675,7 @@ Uint32 DJP2KDecoderBase::computeNumberOfFragments(
 }
 
 
-OFBool DJP2KDecoderBase::isJPEGLSStartOfImage(Uint8 *fragmentData)
+OFBool DJPEG2KDecoderBase::isJPEGLSStartOfImage(Uint8 *fragmentData)
 {
   // A valid JPEG-2000 bitstream will always start with an SOI marker FFD8, followed
   // by either an SOF55 (FFF7), COM (FFFE) or APPn (FFE0-FFEF) marker.
@@ -676,7 +690,7 @@ OFBool DJP2KDecoderBase::isJPEGLSStartOfImage(Uint8 *fragmentData)
 }
 
 
-OFCondition DJP2KDecoderBase::createPlanarConfiguration1Byte(
+OFCondition DJPEG2KDecoderBase::createPlanarConfiguration1Byte(
   Uint8 *imageFrame,
   Uint16 columns,
   Uint16 rows)
@@ -706,7 +720,7 @@ OFCondition DJP2KDecoderBase::createPlanarConfiguration1Byte(
 }
 
 
-OFCondition DJP2KDecoderBase::createPlanarConfiguration1Word(
+OFCondition DJPEG2KDecoderBase::createPlanarConfiguration1Word(
   Uint16 *imageFrame,
   Uint16 columns,
   Uint16 rows)
@@ -735,7 +749,7 @@ OFCondition DJP2KDecoderBase::createPlanarConfiguration1Word(
   return EC_Normal;
 }
 
-OFCondition DJP2KDecoderBase::createPlanarConfiguration0Byte(
+OFCondition DJPEG2KDecoderBase::createPlanarConfiguration0Byte(
   Uint8 *imageFrame,
   Uint16 columns,
   Uint16 rows)
@@ -765,7 +779,7 @@ OFCondition DJP2KDecoderBase::createPlanarConfiguration0Byte(
 }
 
 
-OFCondition DJP2KDecoderBase::createPlanarConfiguration0Word(
+OFCondition DJPEG2KDecoderBase::createPlanarConfiguration0Word(
   Uint16 *imageFrame,
   Uint16 columns,
   Uint16 rows)
