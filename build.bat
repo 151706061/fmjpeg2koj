@@ -12,7 +12,7 @@ SET GITHUBURL=https://github.com
 
 REM a top level directory for all PACS related code
 SET DEVSPACE="%CD%"
-SET GENERATOR=-G "Visual Studio 17 2022" -A x64
+SET GENERATOR="Visual Studio 17 2022" -A x64
 
 cd %DEVSPACE%
 git clone --branch=DCMTK-3.6.8 --single-branch --depth 1 https://github.com/DCMTK/dcmtk.git
