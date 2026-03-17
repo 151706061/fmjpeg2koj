@@ -75,6 +75,14 @@ OFBool DJPEG2KDecoderBase::canChangeCoding(
   return OFFalse;
 }
 
+Uint16 DJPEG2KDecoderBase::decodedBitsAllocated(
+    Uint16 bitsAllocated,
+    Uint16 bitsStored) const
+{
+    if ((bitsStored < 1) || (bitsStored > 16)) return 0;
+
+    return bitsAllocated;
+}
 
 OFCondition DJPEG2KDecoderBase::decode(
     const DcmRepresentationParameter * /* fromRepParam */,
@@ -387,6 +395,10 @@ OFCondition DJPEG2KDecoderBase::decodeFrame(
       }
     } /* while */
   }
+
+  // sanity check
+  if (compressedSize == 0)
+      result = EC_CorruptedData;
 
   // get the compressed data
   if (result.good())

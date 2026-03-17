@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.31)
 
 project(fmjpeg2k)
 
@@ -15,8 +15,8 @@ if(NOT BUILD_SHARED_LIBS)
 add_definitions(-DOPJ_STATIC)
 endif()
 
-find_package(DCMTK)
-find_package(OpenJPEG)
+find_package(DCMTK REQUIRED CONFIG)
+find_package(OpenJPEG REQUIRED)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${DCMTK_INCLUDE_DIRS} ${OPENJPEG_INCLUDE_DIRS})
 LINK_DIRECTORIES(${FMJPEG2K}/lib)
@@ -53,15 +53,17 @@ if(WIN32)
 endif()
 
 ADD_EXECUTABLE(dcmcjp2k dcmcjp2k.cc)
+set_property(TARGET dcmcjp2k PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 TARGET_LINK_LIBRARIES(dcmcjp2k
-	${DCMTK_LIBRARIES}
+	DCMTK::DCMTK
 	${OPENJPEG_LIBRARIES}
 	fmjpeg2k
 	)
 
 ADD_EXECUTABLE(dcmdjp2k dcmdjp2k.cc)
+set_property(TARGET dcmdjp2k PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 TARGET_LINK_LIBRARIES(dcmdjp2k
-	${DCMTK_LIBRARIES}
+	DCMTK::DCMTK
 	${OPENJPEG_LIBRARIES}
 	fmjpeg2k
 	)
@@ -69,8 +71,9 @@ TARGET_LINK_LIBRARIES(dcmdjp2k
 
 add_library(fmjpeg2k ${fmjpeg2k_SRCS})
 set(fmjpeg2k_LIBRARY_NAME fmjpeg2k)
+set_property(TARGET fmjpeg2k PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 TARGET_LINK_LIBRARIES(fmjpeg2k
-	${DCMTK_LIBRARIES}
+	DCMTK::DCMTK
 	${OPENJPEG_LIBRARIES}
 	)
 

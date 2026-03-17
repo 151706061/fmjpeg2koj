@@ -228,6 +228,10 @@ public:
     const E_TransferSyntax oldRepType,
     const E_TransferSyntax newRepType) const;
 
+  virtual Uint16 decodedBitsAllocated(
+      Uint16 bitsAllocated,
+      Uint16 bitsStored) const;
+
   /** determine color model of the decompressed image
    *  @param fromParam representation parameter of current compressed
    *    representation, may be NULL
